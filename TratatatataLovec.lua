@@ -78,7 +78,16 @@ local update_path = getWorkingDirectory().."/config/lovec.ini"
 
 local script_url = "https://github.com/name132/scripts/raw/main/TratatatataLovec.lua"
 local script_path = thisScript().path
-
+function updateFunction()
+    if update_state then
+        downloadUrlToFile(script_url, script_path, function(id, status) 
+            if status == dlstatus.STATUS_ENDDOWNLOADDATA then
+                sms("Скрипт обновлен до нужной версии")
+                thisScript():reload()
+            end
+        end)
+    end
+end
 ---------------------------------------->
 function main()
     if not isSampLoaded() or not isSampfuncsLoaded() then return end
@@ -89,7 +98,10 @@ function main()
             updateIni = ini
             if tonumber(updateIni.info.vers) > script_vers then
                 sms("Есть обновления! Версия: "..updateIni.info.vers_text)
+                sms("Для обновления скрипта /lovec.update")
                 update_state = true
+            else
+                sms("Скрипт актуальной версии")
             end
         end
     end)
@@ -97,7 +109,7 @@ function main()
     sampRegisterChatCommand('lovec', function()
         main_window_state.v = not main_window_state.v
     end)
-
+    sampRegisterChatCommand('lovec.update', updateFunction)
     sampRegisterChatCommand('danil', function() sms('даня лох хахахахахахахаахаххаха\nахахах') end)
 
     sms('скрипт запущен')
@@ -105,15 +117,6 @@ function main()
     tab = 1
     while true do wait(0)
         imgui.Process = main_window_state.v
-        if update_state then
-            downloadUrlToFile(script_url, script_path, function(id, status) 
-                if status == dlstatus.STATUS_ENDDOWNLOADDATA then
-                    sms("Скрипт обновлен до нужной версии")
-                    thisScript():reload()
-                end
-            end)
-            break
-        end
         if house.active.v then
             if house.dialog.v then  
                 sampSendDialogResponse(8868, 1, nil, nil)
