@@ -1,6 +1,4 @@
 --Settings update 1.0
-local updatename = 'Settings'
-local updatenumber = "1.0"
 
 require "lib.moonloader"
 local inicfg = require 'inicfg'
@@ -72,8 +70,8 @@ local dlstatus = require('moonloader').download_status
 
 update_state = false
 
-local script_vers = 2
-local script_vers_text = '2.00'
+local script_vers = 1
+local script_vers_text = '1.00'
 
 local update_url = "https://raw.githubusercontent.com/name132/scripts/main/update.ini"
 local update_path = getWorkingDirectory().."/config/lovec.ini"
@@ -231,7 +229,7 @@ function imgui.OnDrawFrame()
     imgui.SetNextWindowSize(imgui.ImVec2(400, 240), imgui.Cond.FirstUseEver)
 	imgui.SetNextWindowPos(imgui.ImVec2((sw / 2), sh /2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 
-    imgui.Begin(u8'Ловля by walrik | '..updatename.." update "..updatenumber, main_window_state, imgui.WindowFlags.NoResize)
+    imgui.Begin(u8'Ловля by walrik | '..script_vers_text.." update "..script_vers, main_window_state, imgui.WindowFlags.NoResize)
 
     if imgui.Button(fa.ICON_FA_COG) then tab = 4 end imgui.Hint(u8"Настройки скрипта") imgui.SameLine() imgui.CenterText(u8"В скрипте отсутствует автосохранение")
     imgui.Separator()
