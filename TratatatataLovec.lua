@@ -72,17 +72,14 @@ local dlstatus = require('moonloader').download_status
 
 update_state = false
 
-local script_vers = 1
-local script_vers_text = '1.00'
+local script_vers = 2
+local script_vers_text = '2.00'
 
 local update_url = "https://raw.githubusercontent.com/name132/scripts/main/update.ini"
 local update_path = getWorkingDirectory().."/config/lovec.ini"
 
-local script_url = ""
+local script_url = "https://github.com/name132/scripts/raw/main/TratatatataLovec.lua"
 local script_path = thisScript().path
-
-
-
 
 ---------------------------------------->
 function main()
