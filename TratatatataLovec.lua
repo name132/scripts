@@ -92,8 +92,8 @@ function updateFunction()
 end
 
 function spamupdate()
-    if update_state then
-        while true do wait(30000) -- 60 cek 
+    if not update_state then
+        while true do wait(20000) -- 20 cek 
             sms("{FF3300}Доступна новая версия скрипта. {FFFFFF}Для обновления использовать {9900FF}/lovec.update")
         end
     end
@@ -240,7 +240,7 @@ function imgui.OnDrawFrame()
     imgui.Begin(u8'Ловля by walrik | '..script_vers.." update "..script_vers_text, main_window_state, imgui.WindowFlags.NoResize)
 
     if imgui.Button(fa.ICON_FA_COG) then tab = 4 end imgui.Hint(u8"Настройки скрипта") imgui.SameLine() imgui.CenterText(u8"В скрипте отсутствует автосохранение")
-    if update_state then imgui.CenterText(u8"Доступно обновление скрипта!") imgui.Hint(u8"Версия нового обновления: "..script_vers..u8"\nОписание обновления: "..script_vers_text..u8"\nДля обвноления использовать /lovec.update") else imgui.CenterText(u8"Сейчас актуальная версия скрипта") imgui.Hint(u8"Версия скрипта: "..script_vers) end
+    if update_state then imgui.CenterText(u8"Доступно обновление скрипта!") imgui.Hint(u8"Версия нового обновления: "..tonumber(updateIni.info.vers)..u8"\nОписание обновления: "..updateIni.info.vers_text..u8"\nДля обновления использовать /lovec.update") else imgui.CenterText(u8"Сейчас актуальная версия скрипта") imgui.Hint(u8"Версия скрипта: "..script_vers) end
     imgui.Separator()
     if imgui.Button(u8'Ловля домов') then tab = 1 end imgui.SameLine(150) if imgui.Button(u8"Ловля бизнесов") then tab = 2 end imgui.SameLine(300) if imgui.Button(u8"Ловля ферм") then tab = 3 end
     imgui.BeginChild("##settings", imgui.ImVec2(-1, -1), true)
