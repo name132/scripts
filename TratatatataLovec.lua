@@ -1,4 +1,4 @@
---Settings update 1.0
+--Other update 2.0
 
 require "lib.moonloader"
 local inicfg = require 'inicfg'
@@ -70,8 +70,8 @@ local dlstatus = require('moonloader').download_status
 
 update_state = false
 
-local script_vers = 1
-local script_vers_text = 'Settings'
+local script_vers = 2
+local script_vers_text = 'Other'
 
 local update_url = "https://raw.githubusercontent.com/name132/scripts/main/update.ini"
 local update_path = getWorkingDirectory().."/config/lovec.ini"
@@ -86,33 +86,38 @@ function updateFunction()
                 thisScript():reload()
             end
         end)
+    else
+        sms("Сейчас актуальная версия, куда ты лезишь еблан")
+    end
+end
+
+function spamupdate()
+    if update_state then
+        while true do wait(30000) -- 60 cek 
+            sms("{FF3300}Доступна новая версия скрипта. {FFFFFF}Для обновления использовать {9900FF}/lovec.update")
+        end
     end
 end
 ---------------------------------------->
 function main()
     if not isSampLoaded() or not isSampfuncsLoaded() then return end
     while not isSampAvailable() do wait(100) end
-
+    lua_thread.create(spamupdate)
     downloadUrlToFile(update_url, update_path, function(id, status) 
         if status == dlstatus.STATUS_ENDDOWNLOADDATA then
             updateIni = ini
             if tonumber(updateIni.info.vers) > script_vers then
-                sms("Есть обновления! Версия: "..updateIni.info.vers_text)
-                sms("Для обновления скрипта /lovec.update")
+                sms("Есть обновления! Версия: {6633FF}"..updateIni.info.vers_text)
+                sms("Для обновления скрипта {9900FF}/lovec.update")
                 update_state = true
             else
-                sms("Скрипт актуальной версии")
+                sms("Скрипт запущен. Установлена актуальная версия")
             end
         end
     end)
 
-    sampRegisterChatCommand('lovec', function()
-        main_window_state.v = not main_window_state.v
-    end)
+    sampRegisterChatCommand('lovec', function() main_window_state.v = not main_window_state.v end)
     sampRegisterChatCommand('lovec.update', updateFunction)
-    sampRegisterChatCommand('danil', function() sms('даня лох хахахахахахахаахаххаха\nахахах') end)
-
-    sms('скрипт запущен')
     lua_thread.create(firstThread)
     tab = 1
     while true do wait(0)
@@ -229,12 +234,13 @@ end
 function imgui.OnDrawFrame()
     if ini.main.theme == 0 then theme_1_white() elseif ini.main.theme == 1 then theme_2_green() elseif ini.main.theme == 2 then theme_3_golybaya() end
     if not main_window_state.v then imgui.Process = false end
-    imgui.SetNextWindowSize(imgui.ImVec2(400, 240), imgui.Cond.FirstUseEver)
+    imgui.SetNextWindowSize(imgui.ImVec2(400, 260), imgui.Cond.FirstUseEver)
 	imgui.SetNextWindowPos(imgui.ImVec2((sw / 2), sh /2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 
     imgui.Begin(u8'Ловля by walrik | '..script_vers.." update "..script_vers_text, main_window_state, imgui.WindowFlags.NoResize)
 
     if imgui.Button(fa.ICON_FA_COG) then tab = 4 end imgui.Hint(u8"Настройки скрипта") imgui.SameLine() imgui.CenterText(u8"В скрипте отсутствует автосохранение")
+    if update_state then imgui.CenterText(u8"Доступно обновление скрипта!") imgui.Hint(u8"Версия нового обновления: "..script_vers..u8"\nОписание обновления: "..script_vers_text..u8"\nДля обвноления использовать /lovec.update") else imgui.CenterText(u8"Сейчас актуальная версия скрипта") imgui.Hint(u8"Версия скрипта: "..script_vers) end
     imgui.Separator()
     if imgui.Button(u8'Ловля домов') then tab = 1 end imgui.SameLine(150) if imgui.Button(u8"Ловля бизнесов") then tab = 2 end imgui.SameLine(300) if imgui.Button(u8"Ловля ферм") then tab = 3 end
     imgui.BeginChild("##settings", imgui.ImVec2(-1, -1), true)
