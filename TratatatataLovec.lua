@@ -1,4 +1,4 @@
---Other update 2.0
+--debug update 2.0
 
 require "lib.moonloader"
 local inicfg = require 'inicfg'
@@ -70,8 +70,8 @@ local dlstatus = require('moonloader').download_status
 
 update_state = false
 
-local script_vers = 2
-local script_vers_text = 'Other'
+local script_vers = 3
+local script_vers_text = 'Debug'
 
 local update_url = "https://raw.githubusercontent.com/name132/scripts/main/update.ini"
 local update_path = getWorkingDirectory().."/config/lovec.ini"
@@ -92,8 +92,8 @@ function updateFunction()
 end
 
 function spamupdate()
-    if not update_state then
-        while true do wait(20000) -- 20 cek 
+    if update_state then
+        while true do wait(30000) -- 30 cek 
             sms("{FF3300}Доступна новая версия скрипта. {FFFFFF}Для обновления использовать {9900FF}/lovec.update")
         end
     end
@@ -240,7 +240,7 @@ function imgui.OnDrawFrame()
     imgui.Begin(u8'Ловля by walrik | '..script_vers.." update "..script_vers_text, main_window_state, imgui.WindowFlags.NoResize)
 
     if imgui.Button(fa.ICON_FA_COG) then tab = 4 end imgui.Hint(u8"Настройки скрипта") imgui.SameLine() imgui.CenterText(u8"В скрипте отсутствует автосохранение")
-    if update_state then imgui.CenterText(u8"Доступно обновление скрипта!") imgui.Hint(u8"Версия нового обновления: "..tonumber(updateIni.info.vers)..u8"\nОписание обновления: "..updateIni.info.vers_text..u8"\nДля обновления использовать /lovec.update") else imgui.CenterText(u8"Сейчас актуальная версия скрипта") imgui.Hint(u8"Версия скрипта: "..script_vers) end
+    if update_state then imgui.CenterText(u8"Доступно обновление скрипта!") imgui.Hint(u8"Версия нового обновления: "..script_vers..u8"\nОписание обновления: "..script_vers_text..u8"\nДля обвноления использовать /lovec.update") else imgui.CenterText(u8"Сейчас актуальная версия скрипта") imgui.Hint(u8"Версия скрипта: "..script_vers) end
     imgui.Separator()
     if imgui.Button(u8'Ловля домов') then tab = 1 end imgui.SameLine(150) if imgui.Button(u8"Ловля бизнесов") then tab = 2 end imgui.SameLine(300) if imgui.Button(u8"Ловля ферм") then tab = 3 end
     imgui.BeginChild("##settings", imgui.ImVec2(-1, -1), true)
