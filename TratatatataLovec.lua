@@ -1,4 +1,4 @@
---debug update 2.0
+--Speed update 4.0
 
 require "lib.moonloader"
 local inicfg = require 'inicfg'
@@ -70,8 +70,8 @@ local dlstatus = require('moonloader').download_status
 
 update_state = false
 
-local script_vers = 3
-local script_vers_text = 'Debug'
+local script_vers = 4
+local script_vers_text = 'Speed'
 
 local update_url = "https://raw.githubusercontent.com/name132/scripts/main/update.ini"
 local update_path = getWorkingDirectory().."/config/lovec.ini"
@@ -99,6 +99,20 @@ function spamupdate()
     end
 end
 ---------------------------------------->
+
+function pressButtonHouse()
+    local data = samp_create_syns_data('player')
+    data.keysData = data.keysData + 128
+    data.send()
+    if house.infoButton.v then sms('Клавиша N нажата') end
+end
+function pressButtonBiz()
+    local data = samp_create_syns_data('player')
+    data.keysData = data.keysData + 128
+    data.send()
+    if house.infoButton.v then sms('Клавиша N нажата') end
+end
+
 function main()
     if not isSampLoaded() or not isSampfuncsLoaded() then return end
     while not isSampAvailable() do wait(100) end
@@ -135,15 +149,7 @@ function main()
                         local x, y, z = getCharCoordinates(PLAYER_PED)
                         distance3d = math.sqrt( ((posX-x)^2) + ((posY-y)^2) + ((posZ-z)^2))
                         if distance3d <= house.slider.v then
-                            setVirtualKeyDown(78, true)
-                            if house.infoButton.v then
-                                sampAddChatMessage('Нажата N', -1)
-                            end
-                            wait(10)
-                            setVirtualKeyDown(78, false)
-                            if house.infoButton.v then
-                                sampAddChatMessage('Отжата N', -1)
-                            end
+                            pressButtonHouse()
                         end
                     end
                 end
@@ -164,15 +170,7 @@ function main()
                         local x, y, z = getCharCoordinates(PLAYER_PED)
                         distance3d = math.sqrt( ((posX-x)^2) + ((posY-y)^2) + ((posZ-z)^2))
                         if distance3d <= biz.slider.v then
-                            setVirtualKeyDown(78, true)
-                            if biz.infoButton.v then
-                                sampAddChatMessage('Нажата N', -1)
-                            end
-                            wait(10)
-                            setVirtualKeyDown(78, false)
-                            if biz.infoButton.v then
-                                sampAddChatMessage('Отжата N', -1)
-                            end
+                            pressButtonBiz()
                         end
                     end
                 end
