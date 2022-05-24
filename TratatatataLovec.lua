@@ -1,44 +1,17 @@
---Speed update 4.0
-
 require "lib.moonloader"
-local inicfg = require 'inicfg'
-local directIni = 'lovec.ini'
-local ini = inicfg.load(inicfg.load({
-    main = {
-        theme = 0
-    },
-}, directIni))
-function save()
-inicfg.save(ini, directIni)
-end
+
 local imgui = require 'imgui'
 local encoding = require 'encoding'
 encoding.default = 'CP1251'
 u8 = encoding.UTF8
 local counter2 = {}
-local theme = {u8"Стандартная", u8"Зеленая", u8"Голубая{прямо как даня хахахаха}"}
-local selected_theme = imgui.ImInt(ini.main.theme)
 
 local main_window_state = imgui.ImBool(false)
 local sw, sh = getScreenResolution()
 local ev = require 'samp.events'
 
-local fa = require 'fAwesome5'
-
-local fa_font = nil
-local fa_glyph_ranges = imgui.ImGlyphRanges({ fa.min_range, fa.max_range })
-function imgui.BeforeDrawFrame()
-    if fa_font == nil then
-        local font_config = imgui.ImFontConfig()
-        font_config.MergeMode = true
-        
-        fa_font = imgui.GetIO().Fonts:AddFontFromFileTTF('moonloader/resource/fonts/fa-solid-900.ttf', 13.0, font_config, fa_glyph_ranges)
-    end
-end
-
 local font_flag = require('moonloader').font_flag
 local my_font = renderCreateFont('Verdana', 12, font_flag.BOLD + font_flag.SHADOW)
-local font = renderCreateFont('ShellyAllegroC',12,5)
 
 local house = {
     active = imgui.ImBool(false),
@@ -58,87 +31,23 @@ local ferma = {
     active = imgui.ImBool(false),
     dialog = imgui.ImBool(true),
     offButtons = imgui.ImBool(true),
-    infobar = imgui.ImBool(true),
-    id = imgui.ImFloat(1),
+    id = imgui.ImFloat(1), -- выбор ид фермы под слет
 }
-
-local other = {
-    nocols = imgui.ImBool(false),
-}
----------- AUTO UPDATE SCRIPT ----------> 
-local dlstatus = require('moonloader').download_status
-
-update_state = false
-
-local script_vers = 4
-local script_vers_text = 'Speed'
-
-local update_url = "https://raw.githubusercontent.com/name132/scripts/main/update.ini"
-local update_path = getWorkingDirectory().."/config/lovec.ini"
-
-local script_url = "https://github.com/name132/scripts/raw/main/TratatatataLovec.lua"
-local script_path = thisScript().path
-function updateFunction()
-    if update_state then
-        downloadUrlToFile(script_url, script_path, function(id, status) 
-            if status == dlstatus.STATUS_ENDDOWNLOADDATA then
-                sms("Скрипт обновлен до нужной версии")
-                thisScript():reload()
-            end
-        end)
-    else
-        sms("Сейчас актуальная версия, куда ты лезишь еблан")
-    end
-end
-
-function spamupdate()
-    if update_state then
-        while true do wait(30000) -- 30 cek 
-            sms("{FF3300}Доступна новая версия скрипта. {FFFFFF}Для обновления использовать {9900FF}/lovec.update")
-        end
-    end
-end
----------------------------------------->
-
-function pressButtonHouse()
-    local data = samp_create_syns_data('player')
-    data.keysData = data.keysData + 128
-    data.send()
-    if house.infoButton.v then sms('Клавиша N нажата') end
-end
-function pressButtonBiz()
-    local data = samp_create_syns_data('player')
-    data.keysData = data.keysData + 128
-    data.send()
-    if house.infoButton.v then sms('Клавиша N нажата') end
-end
 
 function main()
-    if not isSampLoaded() or not isSampfuncsLoaded() then return end
-    while not isSampAvailable() do wait(100) end
-    lua_thread.create(spamupdate)
-    downloadUrlToFile(update_url, update_path, function(id, status) 
-        if status == dlstatus.STATUS_ENDDOWNLOADDATA then
-            updateIni = ini
-            if tonumber(updateIni.info.vers) > script_vers then
-                sms("Есть обновления! Версия: {6633FF}"..updateIni.info.vers_text)
-                sms("Для обновления скрипта {9900FF}/lovec.update")
-                update_state = true
-            else
-                sms("Скрипт запущен. Установлена актуальная версия")
-            end
-        end
-    end)
-
-    sampRegisterChatCommand('lovec', function() main_window_state.v = not main_window_state.v end)
-    sampRegisterChatCommand('lovec.update', updateFunction)
-    lua_thread.create(firstThread)
-    tab = 1
+if not isSampLoaded() or not isSampfuncsLoaded() then return end
+while not isSampAvailable() do wait(100) end
+sampRegisterChatCommand('lovec', function()
+      main_window_state.v = not main_window_state.v
+      imgui.Process = main_window_state.v
+end)
+lua_thread.create(firstThread)
+lua_thread.create(firstThread2)
+tab = 0
     while true do wait(0)
-        imgui.Process = main_window_state.v
         if house.active.v then
             if house.dialog.v then  
-                sampSendDialogResponse(8868, 1, nil, nil)
+                sampSendDialogResponse(216, 1, nil, nil)
             end
             for id = 0, 2048 do
                 local result = sampIs3dTextDefined(id)
@@ -147,9 +56,16 @@ function main()
                     if text:find("*** Дом продается **") then 
                         local wposX, wposY, wposZ = convert3DCoordsToScreen(posX,posY,posZ)
                         local x, y, z = getCharCoordinates(PLAYER_PED)
-                        distance3d = math.sqrt( ((posX-x)^2) + ((posY-y)^2) + ((posZ-z)^2))
                         if distance3d <= house.slider.v then
-                            pressButtonHouse()
+                            setVirtualKeyDown(78, true)
+                            if house.infoButton.v then
+                                sampAddChatMessage('Нажата N', -1)
+                            end
+                            wait(50)
+                            setVirtualKeyDown(78, false)
+                            if house.infoButton.v then
+                                sampAddChatMessage('Отжата N', -1)
+                            end
                         end
                     end
                 end
@@ -168,9 +84,16 @@ function main()
                     if text:find("Бизнес продается") then
                         local wposX, wposY, wposZ = convert3DCoordsToScreen(posX,posY,posZ)
                         local x, y, z = getCharCoordinates(PLAYER_PED)
-                        distance3d = math.sqrt( ((posX-x)^2) + ((posY-y)^2) + ((posZ-z)^2))
                         if distance3d <= biz.slider.v then
-                            pressButtonBiz()
+                            setVirtualKeyDown(78, true)
+                            if biz.infoButton.v then
+                                sampAddChatMessage('Нажата N', -1)
+                            end
+                            wait(50)
+                            setVirtualKeyDown(78, false)
+                            if biz.infoButton.v then
+                                sampAddChatMessage('Отжата N', -1)
+                            end
                         end
                     end
                 end
@@ -178,89 +101,91 @@ function main()
         end
         if ferma.active.v then
             if ferma.offButtons.v then
-                if isKeyDown(0x46) and isKeyJustPressed(0x4C) then
+                if isKeyDown(0x46) and isKeyJustPressed(0x4C) then -- F and L
                     ferma.active = imgui.ImBool(false)
                     printString('flood stop', 300)
                 end
             end
             if ferma.dialog.v then  
-                int = getCharActiveInterior(PLAYER_PED)
-                if int == 134 then
-                    dialogID = nil
-                    sampSendDialogResponse(dialogID, 1, nil, nil)
-                end
-            end
-            for k, v in ipairs(counter2) do 
-                if (os.clock() - v) > 1.0 then 
-                    table.remove(counter2, k)
-                end
+                dialogID = nil -- здесь вместо nil надо поставить ид диалога подтверждения покупки фермы
+                sampSendDialogResponse(dialogID, 1, nil, nil)
             end
 			sampSendDialogResponse(1490, 1, math.ceil(ferma.id.v) - 1, nil)
-            sampSendDialogResponse(1490, 1, math.ceil(ferma.id.v) - 1, nil)
-            counter2[#counter2 + 1] = os.clock()
-            counter2[#counter2 + 1] = os.clock()
-
         end
 
+    end
+end
+
+function firstThread2()
+    while true do wait(0)
+        for k, v in ipairs(counter2) do 
+			if (os.clock() - v) > 1.0 then 
+				table.remove(counter2, k)
+			end
+		end
+        counter2[#counter2 + 1] = os.clock()
+		wait(150)
     end
 end
 
 function firstThread()
-   while true do wait(0)
+    while true do wait(0)
         if ferma.active.v then
-            if ferma.infobar.v then
-			    renderFontDrawText(font, "Время: {FF1493}"..get_timer(jobTime2).."\n{FFFFFF}Количество диалогов:{FF1493} "..counter_dialog.."\n{FFFFFF}Диалогов:{FF1493} "..#counter2.." {FFFFFF}/ сек", 10, sh/2.3, 0xFFFFFFFF)
-            end
+            renderFontDrawText(font, "Время: {FF1493}"..get_timer(jobTime2).."\n{FFFFFF}Количество диалогов:{FF1493} "..counter_dialog.."\n{FFFFFF}Диалогов:{FF1493} "..#counter2.." {FFFFFF}/ сек", 10, sh/2.3, 0xFFFFFFFF)
         else
-			counter_dialog = 0
-			jobTime2 = os.time()
+            jobTime2 = os.time()
+            counter_dialog = 0
         end
     end
 end
 
-function ev.onServerMessage(color,text)
+function samp.onServerMessage(color,text)
     if ferma.active.v then  
-        if ferma.infobar.v then
-            if text:find('Эта ферма уже куплена') then
-                counter_dialog = counter_dialog + 1
-                return false
-            end
+        if text:find('Эта ферма уже куплена') then
+            counter_dialog = counter_dialog + 1
+            --return false
         end
     end
 end
-
+--[[
+-->Для отправки закрытия диалога серверу 
+function ev.onShowDialog(id, s, t, btn1, btn2, text)
+    if ferma.active.v then
+        lua_thread.create(function()
+            if id == 1490 then
+                wait(1)
+                stroka = math.ceil(ferma.id.v) - 1
+                sampSendDialogResponse(id, 1, stroka, nil)
+            end
+        end)
+    end
+end
+]]
 function imgui.OnDrawFrame()
-    if ini.main.theme == 0 then theme_1_white() elseif ini.main.theme == 1 then theme_2_green() elseif ini.main.theme == 2 then theme_3_golybaya() end
-    if not main_window_state.v then imgui.Process = false end
-    imgui.SetNextWindowSize(imgui.ImVec2(400, 260), imgui.Cond.FirstUseEver)
+    imgui.SetNextWindowSize(imgui.ImVec2(400, 230), imgui.Cond.FirstUseEver)
 	imgui.SetNextWindowPos(imgui.ImVec2((sw / 2), sh /2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 
-    imgui.Begin(u8'Ловля by walrik | '..script_vers.." update "..script_vers_text, main_window_state, imgui.WindowFlags.NoResize)
+    imgui.Begin(u8'АХК ПОСОСИТЕ МОЙ ХУЙ by walerik', main_window_state, imgui.WindowFlags.NoResize)
 
-    if imgui.Button(fa.ICON_FA_COG) then tab = 4 end imgui.Hint(u8"Настройки скрипта") imgui.SameLine() imgui.CenterText(u8"В скрипте отсутствует автосохранение")
-    if update_state then imgui.CenterText(u8"Доступно обновление скрипта!") imgui.Hint(u8"Версия нового обновления: "..script_vers..u8"\nОписание обновления: "..script_vers_text..u8"\nДля обвноления использовать /lovec.update") else imgui.CenterText(u8"Сейчас актуальная версия скрипта") imgui.Hint(u8"Версия скрипта: "..script_vers) end
+    imgui.CenterText(u8"В скрипте отсутствует автосохранение")
     imgui.Separator()
     if imgui.Button(u8'Ловля домов') then tab = 1 end imgui.SameLine(150) if imgui.Button(u8"Ловля бизнесов") then tab = 2 end imgui.SameLine(300) if imgui.Button(u8"Ловля ферм") then tab = 3 end
     imgui.BeginChild("##settings", imgui.ImVec2(-1, -1), true)
     if tab == 0 then 
 
     elseif tab == 1 then  
-        imgui.Separator(50)
         imgui.CenterText(u8'Настройки для ловли домов')
-        imgui.Separator(50)
         imgui.ToggleButton(house.active.v and u8'Включено' or u8'Выключено', house.active)
         imgui.Checkbox(u8"Автоматически закрывать диалог", house.dialog)
         imgui.Hint(u8"Автоматически нажимает на подтверждение покупки в диалоге после нажатия N")
         imgui.Checkbox(u8"Отображание нажатия виртуальных кнопок в чате", house.infoButton) imgui.SameLine() if imgui.Button(u8'сlick') then sampAddChatMessage('Нажата N', -1) sampAddChatMessage('Отжата N', -1) end
         imgui.Hint(u8"Пример сообщений")
-        imgui.SliderFloat(u8"##бaксы?", house.slider, 0, 5)
+        imgui.SliderFloat(u8"##баксы?", house.slider, 0, 5)
         imgui.Hint(u8"Нажимать N если я нахожусь не более чем в "..math.ceil(house.slider.v) ..u8" метров от метки\nСоветую НЕ ставить больше 2х, иначе скрипт не будет работать.")
         imgui.SameLine() if imgui.Button(u8'click') then house.slider = imgui.ImFloat(2) end
         imgui.Hint(u8"Вернуть значение слайдера по умолчанию")
     elseif tab == 2 then  
-        imgui.Separator(50)
         imgui.CenterText(u8'Настройки для ловли бизнесов')
-        imgui.Separator(50)
         imgui.ToggleButton(biz.active.v and u8'Включено' or u8'Выключено', biz.active)
         imgui.Checkbox(u8"Автоматически закрывать диалог", biz.dialog)
         imgui.Hint(u8"Автоматически нажимает на подтверждение покупки в диалоге после нажатия N")
@@ -271,23 +196,14 @@ function imgui.OnDrawFrame()
         imgui.SameLine() if imgui.Button(u8'cliсk') then biz.slider = imgui.ImFloat(2) end
         imgui.Hint(u8"Вернуть значение слайдера по умолчанию")
     elseif tab == 3 then
-        imgui.Separator(50)
         imgui.CenterText(u8'Настройки для ловли ферм')
-        imgui.Separator(50)
         imgui.ToggleButton(ferma.active.v and u8'Включено' or u8'Выключено', ferma.active)
         imgui.Checkbox(u8"Автоматически закрывать диалог", ferma.dialog)
         imgui.Hint(u8"Автоматически нажимает на подтверждение покупки в диалоге.\n[Не работает, ибо пока я не знаю ид диалога с подтверждением]")
-        imgui.Checkbox(u8"InfoBar", ferma.infobar)
-        imgui.Hint(u8"Информация слева")
         imgui.Checkbox(u8"Фаст офф", ferma.offButtons) 
         imgui.Hint(u8"Выключает флудер окном нажатием клавиш F+L")
         imgui.SliderFloat(u8"Ид фермы", ferma.id, 1, 14, "%.0f") imgui.SameLine()
         imgui.Text("["..math.ceil(ferma.id.v).."]")
-    elseif tab == 4 then
-        if imgui.Combo(u8'Выбор темы', selected_theme, theme, #theme) then
-            ini.main.theme = selected_theme.v 
-            save()
-        end
     end
     imgui.EndChild()
 
@@ -295,13 +211,14 @@ function imgui.OnDrawFrame()
 
 end
 
-
+--> Время работы
 function get_timer(time)
     local jobsTime = os.time() - time
 	return string.format("%s:%s:%s", string.format("%s%s", (tonumber(os.date("%H", jobsTime)) < tonumber(os.date("%H", 0)) and 24 + tonumber(os.date("%H", jobsTime)) - tonumber(os.date("%H", 0)) or tonumber(os.date("%H", jobsTime)) - tonumber(os.date("%H", 0))) < 10 and 0 or "", tonumber(os.date("%H", jobsTime)) < tonumber(os.date("%H", 0)) and 24 + tonumber(os.date("%H", jobsTime)) - tonumber(os.date("%H", 0)) or tonumber(os.date("%H", jobsTime)) - tonumber(os.date("%H", 0))), os.date("%M", jobsTime), os.date("%S", jobsTime))
 end
 
 
+--> Вставляет текст по центру окна
 function imgui.CenterText(text)
     local width = imgui.GetWindowWidth()
     local calc = imgui.CalcTextSize(text)
@@ -309,10 +226,11 @@ function imgui.CenterText(text)
     imgui.Text(text)
 end
 
+--> Hint
 function imgui.Hint(text, delay, action)
 	if imgui.IsItemHovered() then
 		if go_hint == nil then go_hint = os.clock() + (delay and delay or 0.0) end
-		local alpha = (os.clock() - go_hint) * 5
+		local alpha = (os.clock() - go_hint) * 5 -- скорость появления
 		if os.clock() >= go_hint then
 			imgui.PushStyleVar(imgui.StyleVar.WindowPadding, imgui.ImVec2(10, 10))
 			imgui.PushStyleVar(imgui.StyleVar.Alpha, (alpha <= 1.0 and alpha or 1.0))
@@ -333,10 +251,7 @@ function imgui.Hint(text, delay, action)
 	end
 end
 
-function sms(arg)
-	sampAddChatMessage('[MineCraft 1.8 release] {FFFFFF}'..arg, 0xA9A9A9)
-end
-
+--> Проверка текста в диалоге
 function sampGetListboxItemByText(text, plain)
     if not sampIsDialogActive() then return -1 end
         plain = not (plain == false)
@@ -348,6 +263,7 @@ function sampGetListboxItemByText(text, plain)
     return -1
 end
 
+--> ToggleButton
 function imgui.ToggleButton(str_id, bool)
     local rBool = false
 
@@ -403,7 +319,8 @@ function imgui.ToggleButton(str_id, bool)
     return rBool
 end
 
-function theme_1_white()
+--> Стиль имгуи
+function theme_white() -- Rice Style
     imgui.SwitchContext()
     local style = imgui.GetStyle()
     local colors = style.Colors
@@ -470,128 +387,4 @@ function theme_1_white()
         colors[clr.TextSelectedBg]         = ImVec4(0.62, 0.62, 0.62, 1.00);
         colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
 end
-
-function theme_3_golybaya()
-    imgui.SwitchContext()
-    local style = imgui.GetStyle()
-    local colors = style.Colors
-    local clr = imgui.Col
-    local ImVec4 = imgui.ImVec4
-
-    style.WindowRounding = 2.0
-    style.WindowTitleAlign = imgui.ImVec2(0.5, 0.84)
-    style.ChildWindowRounding = 2.0
-    style.FrameRounding = 2.0
-    style.ItemSpacing = imgui.ImVec2(5.0, 4.0)
-    style.ScrollbarSize = 13.0
-    style.ScrollbarRounding = 0
-    style.GrabMinSize = 8.0
-    style.GrabRounding = 1.0
-
-    colors[clr.FrameBg]                = ImVec4(0.16, 0.48, 0.42, 0.54)
-    colors[clr.FrameBgHovered]         = ImVec4(0.26, 0.98, 0.85, 0.40)
-    colors[clr.FrameBgActive]          = ImVec4(0.26, 0.98, 0.85, 0.67)
-    colors[clr.TitleBg]                = ImVec4(0.04, 0.04, 0.04, 1.00)
-    colors[clr.TitleBgActive]          = ImVec4(0.16, 0.48, 0.42, 1.00)
-    colors[clr.TitleBgCollapsed]       = ImVec4(0.00, 0.00, 0.00, 0.51)
-    colors[clr.CheckMark]              = ImVec4(0.26, 0.98, 0.85, 1.00)
-    colors[clr.SliderGrab]             = ImVec4(0.24, 0.88, 0.77, 1.00)
-    colors[clr.SliderGrabActive]       = ImVec4(0.26, 0.98, 0.85, 1.00)
-    colors[clr.Button]                 = ImVec4(0.26, 0.98, 0.85, 0.40)
-    colors[clr.ButtonHovered]          = ImVec4(0.26, 0.98, 0.85, 1.00)
-    colors[clr.ButtonActive]           = ImVec4(0.06, 0.98, 0.82, 1.00)
-    colors[clr.Header]                 = ImVec4(0.26, 0.98, 0.85, 0.31)
-    colors[clr.HeaderHovered]          = ImVec4(0.26, 0.98, 0.85, 0.80)
-    colors[clr.HeaderActive]           = ImVec4(0.26, 0.98, 0.85, 1.00)
-    colors[clr.Separator]              = colors[clr.Border]
-    colors[clr.SeparatorHovered]       = ImVec4(0.10, 0.75, 0.63, 0.78)
-    colors[clr.SeparatorActive]        = ImVec4(0.10, 0.75, 0.63, 1.00)
-    colors[clr.ResizeGrip]             = ImVec4(0.26, 0.98, 0.85, 0.25)
-    colors[clr.ResizeGripHovered]      = ImVec4(0.26, 0.98, 0.85, 0.67)
-    colors[clr.ResizeGripActive]       = ImVec4(0.26, 0.98, 0.85, 0.95)
-    colors[clr.PlotLines]              = ImVec4(0.61, 0.61, 0.61, 1.00)
-    colors[clr.PlotLinesHovered]       = ImVec4(1.00, 0.81, 0.35, 1.00)
-    colors[clr.TextSelectedBg]         = ImVec4(0.26, 0.98, 0.85, 0.35)
-    colors[clr.Text]                   = ImVec4(1.00, 1.00, 1.00, 1.00)
-    colors[clr.TextDisabled]           = ImVec4(0.50, 0.50, 0.50, 1.00)
-    colors[clr.WindowBg]               = ImVec4(0.06, 0.06, 0.06, 0.94)
-    colors[clr.ChildWindowBg]          = ImVec4(1.00, 1.00, 1.00, 0.00)
-    colors[clr.PopupBg]                = ImVec4(0.08, 0.08, 0.08, 0.94)
-    colors[clr.ComboBg]                = colors[clr.PopupBg]
-    colors[clr.Border]                 = ImVec4(0.43, 0.43, 0.50, 0.50)
-    colors[clr.BorderShadow]           = ImVec4(0.00, 0.00, 0.00, 0.00)
-    colors[clr.MenuBarBg]              = ImVec4(0.14, 0.14, 0.14, 1.00)
-    colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.53)
-    colors[clr.ScrollbarGrab]          = ImVec4(0.31, 0.31, 0.31, 1.00)
-    colors[clr.ScrollbarGrabHovered]   = ImVec4(0.41, 0.41, 0.41, 1.00)
-    colors[clr.ScrollbarGrabActive]    = ImVec4(0.51, 0.51, 0.51, 1.00)
-    colors[clr.CloseButton]            = ImVec4(0.41, 0.41, 0.41, 0.50)
-    colors[clr.CloseButtonHovered]     = ImVec4(0.98, 0.39, 0.36, 1.00)
-    colors[clr.CloseButtonActive]      = ImVec4(0.98, 0.39, 0.36, 1.00)
-    colors[clr.PlotHistogram]          = ImVec4(0.90, 0.70, 0.00, 1.00)
-    colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.60, 0.00, 1.00)
-    colors[clr.ModalWindowDarkening]   = ImVec4(0.80, 0.80, 0.80, 0.35)
-end
-function theme_2_green()
-  imgui.SwitchContext()
-  local style  = imgui.GetStyle()
-  local colors = style.Colors
-  local clr    = imgui.Col
-  local ImVec4 = imgui.ImVec4
-  local ImVec2 = imgui.ImVec2
-
-    style.WindowPadding = imgui.ImVec2(8, 8)
-    style.WindowRounding = 6
-    style.ChildWindowRounding = 5
-    style.FramePadding = imgui.ImVec2(5, 3)
-    style.FrameRounding = 3.0
-    style.ItemSpacing = imgui.ImVec2(5, 4)
-    style.ItemInnerSpacing = imgui.ImVec2(4, 4)
-    style.IndentSpacing = 21
-    style.ScrollbarSize = 10.0
-    style.ScrollbarRounding = 13
-    style.GrabMinSize = 8
-    style.GrabRounding = 1
-    style.WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
-    style.ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
-
-    colors[clr.Text]                 = ImVec4(1.00, 1.00, 1.00, 1.00)
-    colors[clr.TextDisabled]         = ImVec4(0.50, 0.50, 0.50, 1.00)
-    colors[clr.WindowBg]             = ImVec4(0.06, 0.06, 0.06, 0.94)
-    colors[clr.ChildWindowBg]        = ImVec4(0.00, 0.00, 0.00, 0.00)
-    colors[clr.PopupBg]              = ImVec4(0.08, 0.08, 0.08, 0.94)
-    colors[clr.Border]               = ImVec4(0.43, 0.43, 0.50, 0.50)
-    colors[clr.BorderShadow]         = ImVec4(0.00, 0.00, 0.00, 0.00)
-    colors[clr.FrameBg]              = ImVec4(0.44, 0.44, 0.44, 0.60)
-    colors[clr.FrameBgHovered]       = ImVec4(0.57, 0.57, 0.57, 0.70)
-    colors[clr.FrameBgActive]        = ImVec4(0.76, 0.76, 0.76, 0.80)
-    colors[clr.TitleBg]              = ImVec4(0.04, 0.04, 0.04, 1.00)
-    colors[clr.TitleBgActive]        = ImVec4(0.16, 0.16, 0.16, 1.00)
-    colors[clr.TitleBgCollapsed]     = ImVec4(0.00, 0.00, 0.00, 0.60)
-    colors[clr.MenuBarBg]            = ImVec4(0.14, 0.14, 0.14, 1.00)
-    colors[clr.ScrollbarBg]          = ImVec4(0.02, 0.02, 0.02, 0.53)
-    colors[clr.ScrollbarGrab]        = ImVec4(0.31, 0.31, 0.31, 1.00)
-    colors[clr.ScrollbarGrabHovered] = ImVec4(0.41, 0.41, 0.41, 1.00)
-    colors[clr.ScrollbarGrabActive]  = ImVec4(0.51, 0.51, 0.51, 1.00)
-    colors[clr.CheckMark]            = ImVec4(0.13, 0.75, 0.55, 0.80)
-    colors[clr.SliderGrab]           = ImVec4(0.13, 0.75, 0.75, 0.80)
-    colors[clr.SliderGrabActive]     = ImVec4(0.13, 0.75, 1.00, 0.80)
-    colors[clr.Button]               = ImVec4(0.13, 0.75, 0.55, 0.40)
-    colors[clr.ButtonHovered]        = ImVec4(0.13, 0.75, 0.75, 0.60)
-    colors[clr.ButtonActive]         = ImVec4(0.13, 0.75, 1.00, 0.80)
-    colors[clr.Header]               = ImVec4(0.13, 0.75, 0.55, 0.40)
-    colors[clr.HeaderHovered]        = ImVec4(0.13, 0.75, 0.75, 0.60)
-    colors[clr.HeaderActive]         = ImVec4(0.13, 0.75, 1.00, 0.80)
-    colors[clr.Separator]            = ImVec4(0.13, 0.75, 0.55, 0.40)
-    colors[clr.SeparatorHovered]     = ImVec4(0.13, 0.75, 0.75, 0.60)
-    colors[clr.SeparatorActive]      = ImVec4(0.13, 0.75, 1.00, 0.80)
-    colors[clr.ResizeGrip]           = ImVec4(0.13, 0.75, 0.55, 0.40)
-    colors[clr.ResizeGripHovered]    = ImVec4(0.13, 0.75, 0.75, 0.60)
-    colors[clr.ResizeGripActive]     = ImVec4(0.13, 0.75, 1.00, 0.80)
-    colors[clr.PlotLines]            = ImVec4(0.61, 0.61, 0.61, 1.00)
-    colors[clr.PlotLinesHovered]     = ImVec4(1.00, 0.43, 0.35, 1.00)
-    colors[clr.PlotHistogram]        = ImVec4(0.90, 0.70, 0.00, 1.00)
-    colors[clr.PlotHistogramHovered] = ImVec4(1.00, 0.60, 0.00, 1.00)
-    colors[clr.TextSelectedBg]       = ImVec4(0.26, 0.59, 0.98, 0.35)
-    colors[clr.ModalWindowDarkening] = ImVec4(0.80, 0.80, 0.80, 0.35)
-end
+theme_white()
