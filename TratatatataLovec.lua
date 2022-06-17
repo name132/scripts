@@ -70,8 +70,8 @@ local dlstatus = require('moonloader').download_status
 
 update_state = false
 
-local script_vers = 5
-local script_vers_text = 'Speed up '
+local script_vers = 6
+local script_vers_text = 'Ferma Update'
 
 local update_url = "https://raw.githubusercontent.com/name132/scripts/main/update.ini"
 local update_path = getWorkingDirectory().."/config/lovec.ini"
@@ -176,13 +176,6 @@ function main()
                     printString('flood stop', 300)
                 end
             end
-            if ferma.dialog.v then  
-                int = getCharActiveInterior(PLAYER_PED)
-                if int == 134 then
-                    dialogID = nil
-                    sampSendDialogResponse(dialogID, 1, nil, nil)
-                end
-            end
             for k, v in ipairs(counter2) do 
                 if (os.clock() - v) > 1.0 then 
                     table.remove(counter2, k)
@@ -197,6 +190,16 @@ function main()
 
     end
 end
+function ev.onShowDialog(dialogId, style, title, button1, button2, text)
+    if ferma.active.v then
+        if ferma.dialog.v then
+            if title == "Подтверждение покупки фермы" then
+                sampSendDialogResponse(dialogId, 1, nil, nil)
+            end
+        end
+    end
+end
+--ferma.dialog
 
 function firstThread()
    while true do wait(0)
