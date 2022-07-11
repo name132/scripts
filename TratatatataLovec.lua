@@ -1,4 +1,4 @@
---Speed up update 5.0
+--Ferma update 7.0
 
 require "lib.moonloader"
 local inicfg = require 'inicfg'
@@ -70,8 +70,8 @@ local dlstatus = require('moonloader').download_status
 
 update_state = false
 
-local script_vers = 6
-local script_vers_text = 'Ferma Update'
+local script_vers = 7
+local script_vers_text = 'Ferma'
 
 local update_url = "https://raw.githubusercontent.com/name132/scripts/main/update.ini"
 local update_path = getWorkingDirectory().."/config/lovec.ini"
@@ -136,10 +136,15 @@ function main()
                         local x, y, z = getCharCoordinates(PLAYER_PED)
                         distance3d = math.sqrt( ((posX-x)^2) + ((posY-y)^2) + ((posZ-z)^2))
                         if distance3d <= house.slider.v then
-                            local data = samp_create_sync_data('player')
-                            data.weapon = data.weapon + 128
-                            data.send()
-                            if house.infoButton.v then sms('Клавиша N нажата') end
+                            setVirtualKeyDown(78, true)
+                            if house.infoButton.v then
+                                sampAddChatMessage('Нажата N', -1)
+                            end
+                            wait(15)
+                            setVirtualKeyDown(78, false)
+                            if house.infoButton.v then
+                                sampAddChatMessage('Отжата N', -1)
+                            end
                         end
                     end
                 end
@@ -160,10 +165,15 @@ function main()
                         local x, y, z = getCharCoordinates(PLAYER_PED)
                         distance3d = math.sqrt( ((posX-x)^2) + ((posY-y)^2) + ((posZ-z)^2))
                         if distance3d <= biz.slider.v then
-                            local data = samp_create_sync_data('player')
-                            data.weapon = data.weapon + 128
-                            data.send()
-                            if biz.infoButton.v then sms('Клавиша N нажата') end
+                            setVirtualKeyDown(78, true)
+                            if biz.infoButton.v then
+                                sampAddChatMessage('Нажата N', -1)
+                            end
+                            wait(15)
+                            setVirtualKeyDown(78, false)
+                            if biz.infoButton.v then
+                                sampAddChatMessage('Отжата N', -1)
+                            end
                         end
                     end
                 end
@@ -193,7 +203,7 @@ end
 function ev.onShowDialog(dialogId, style, title, button1, button2, text)
     if ferma.active.v then
         if ferma.dialog.v then
-            if title == "Подтверждение покупки фермы" then
+            if title:find('Подтверждение покупки фермы') then
                 sampSendDialogResponse(dialogId, 1, nil, nil)
             end
         end
